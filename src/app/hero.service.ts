@@ -4,7 +4,6 @@ import { map, tap, catchError } from 'rxjs/operators';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { Hero } from './hero';
-import { HEROES } from './mock-heroes';
 import { MessagesService } from './messages.service';
 
 @Injectable({
