@@ -11,6 +11,9 @@ import { MessagesService } from './messages.service';
 })
 export class HeroService {
   private heroesURL = 'api/heroes'; // 웹 API 형식의 URL로 사용
+  private httpOptions = {
+    headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+  };
 
   constructor(
     private http: HttpClient,
@@ -31,6 +34,47 @@ export class HeroService {
     return this.http.get<Hero>(url).pipe(
       tap(_ => this.log(`fetched hero id = ${id}`)),
       catchError(this.handleError<Hero>(`getHero id=${id}`)),
+    );
+  }
+
+  /** PUT: 서버에 저장된 히어로 데이터를 변경합니다 */
+  updateHero(hero: Hero): Observable<any> {
+    return this.http.put(this.heroesURL, hero, this.httpOptions).pipe(
+      tap(_ => this.log(`updated hero id = ${hero.id}`)),
+      catchError(this.handleError<any>('updateHero')),
+    );
+  }
+
+  /** POST: 서버에 새로운 히어로를 추가합니다. */
+  addHero(hero: Hero): Observable<Hero> {
+    return this.http.post<Hero>(this.heroesURL, hero, this.httpOptions).pipe(
+      tap((newHero: Hero) => this.log(`added hero w/ id=${newHero.id}`)),
+      catchError(this.handleError<Hero>('addHero')),
+    );
+  }
+
+  /** DELETE: 서버에서 히어로를 제거합니다. */
+  deleteHero(hero: Hero | number): Observable<Hero> {
+    const id = typeof hero === 'number' ? hero : hero.id;
+    const url = `${this.heroesURL}/${id}`;
+
+    return this.http.delete<Hero>(url, this.httpOptions).pipe(
+      tap(_ => this.log(`deleted hero id = ${id}`)),
+      catchError(this.handleError<Hero>('deleteHero')),
+    );
+  }
+
+  /** GET: 입력된 문구가 이름에 포함된 히어로 목록을 반환합니다. */
+  searchHeroes(term: string): Observable<Hero[]> {
+    // 입력된 내용이 없으면 빈 배열을 반환합니다.
+    if (!term.trim()) return of([]);
+    return this.http.get<Hero[]>(`${this.heroesURL}/?name=${term}`).pipe(
+      tap(x =>
+        x.length
+          ? this.log(`found heroes matching "${term}"`)
+          : this.log(`no heroes matching "${term}"`),
+      ),
+      catchError(this.handleError<Hero[]>('searchHeroes', [])),
     );
   }
 
